@@ -64,3 +64,22 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+/* Role-specific styling */
+.role-admin {
+    background-color: rgba(239, 68, 68, 0.8); /* Red-500 with 80% opacity */
+    color: #ffffff; /* White */
+    border: 1px solid rgba(220, 38, 38, 0.9); /* Darker Red-600 with 90% opacity */
+}
+
+.role-instructor {
+    background-color: rgba(59, 130, 246, 0.8); /* Blue-500 with 80% opacity */
+    color: #ffffff; /* White */
+    border: 1px solid rgba(37, 99, 235, 0.9); /* Darker Blue-600 with 90% opacity */
+}
+
+.role-student {
+    background-color: rgba(34, 197, 94, 0.8); /* Green-500 with 80% opacity */
+    color: #ffffff; /* White */
+    border: 1px solid rgba(22, 163, 74, 0.9); /* Darker Green-600 with 90% opacity */
+}

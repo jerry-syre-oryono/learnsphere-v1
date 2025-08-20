@@ -1,0 +1,4 @@
+{
+    "dbMcp.provider": "sqlite",
+    "dbMcp.connectionString": "\"C:\\Users\\Syreo\\OneDrive\\Desktop\\code_index\\learnsphere v1\\learnsphere\\database\\database.sqlite\""
+}

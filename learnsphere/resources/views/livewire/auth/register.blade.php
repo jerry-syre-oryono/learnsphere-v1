@@ -11,6 +11,7 @@ use Livewire\Volt\Component;
 new #[Layout('components.layouts.auth')] class extends Component {
     public string $name = '';
     public string $email = '';
+    public string $role = '';
     public string $password = '';
     public string $password_confirmation = '';
 
@@ -28,6 +29,9 @@ new #[Layout('components.layouts.auth')] class extends Component {
         $validated['password'] = Hash::make($validated['password']);
 
         event(new Registered(($user = User::create($validated))));
+
+        // Assign the selected role to the user
+        $user->assignRole($this->role);
 
         Auth::login($user);
 
@@ -63,15 +67,18 @@ new #[Layout('components.layouts.auth')] class extends Component {
             placeholder="email@example.com"
         />
 
-        <div>
-            <label for="role" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Register as</label>
-            <select id="role" name="role" required
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-red-600 focus:ring focus:ring-red-600 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-                <option value="">Select Role</option>
-                <option value="student">Student</option>
-                <option value="instructor">Instructor</option>
-            </select>
-        </div>
+        <flux:dropdown>
+            <flux:button icon:trailing="chevron-down" class="w-full">
+                {{ $role ? __(ucfirst($role)) : __('Register as') }}
+            </flux:button>
+            <flux:menu>
+                <flux:menu.radio.group wire:model="role">
+                    <flux:menu.radio value="student">{{ __('Student') }}</flux:menu.radio>
+                    <flux:menu.radio value="instructor">{{ __('Instructor') }}</flux:menu.radio>
+                    <flux:menu.radio value="admin">{{ __('Admin') }}</flux:menu.radio>
+                </flux:menu.radio.group>
+            </flux:menu>
+        </flux:dropdown>
 
         <!-- Password -->
         <flux:input
