@@ -21,7 +21,8 @@ class DatabaseSeeder extends Seeder
         );
 
         $this->call(RolesTableSeeder::class);
-        $this->call(LmsSeeder::class);
+        // $this->call(LmsSeeder::class); // Replaced by CourseContentSeeder for real content
+        $this->call(CourseContentSeeder::class);
         $this->call(DemoUserSeeder::class);
         $this->call(DemoSeeder::class);
 

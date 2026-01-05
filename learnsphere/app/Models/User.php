@@ -26,6 +26,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'is_approved',
     ];
 
     /**
@@ -48,6 +49,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_approved' => 'boolean',
         ];
     }
 
@@ -59,7 +61,7 @@ class User extends Authenticatable
         return Str::of($this->name)
             ->explode(' ')
             ->take(2)
-            ->map(fn ($word) => Str::substr($word, 0, 1))
+            ->map(fn($word) => Str::substr($word, 0, 1))
             ->implode('');
     }
 
@@ -91,30 +93,26 @@ class User extends Authenticatable
         return $this->hasMany(Enrollment::class);
     }
 
-        public function enrolledCourses()
+    public function enrolledCourses()
+    {
 
-        {
+        return $this->belongsToMany(Course::class, 'enrollments');
 
-            return $this->belongsToMany(Course::class, 'enrollments');
+    }
 
-        }
 
-    
 
-            public function completedLessons()
+    public function completedLessons()
+    {
 
-    
 
-            {
 
-    
+        return $this->belongsToMany(Lesson::class, 'lesson_user');
 
-                return $this->belongsToMany(Lesson::class, 'lesson_user');
 
-    
 
-            }
+    }
 
-    
 
-        }
+
+}

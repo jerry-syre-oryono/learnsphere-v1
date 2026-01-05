@@ -30,12 +30,13 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
         event(new Registered(($user = User::create($validated))));
 
-        // Assign the selected role to the user
-        $user->assignRole($this->role);
+        // Users are not approved by default.
+        // $user->assignRole($this->role); // Removed as per request
+        // Auth::login($user); // Removed auto-login
 
-        Auth::login($user);
-
-        $this->redirectIntended(route('dashboard', absolute: false), navigate: true);
+        // Redirect to a specific page or login with message
+        session()->flash('status', 'Registration successful! Your account is pending admin approval.');
+        $this->redirect(route('login'), navigate: true);
     }
 }; ?>
 
@@ -47,60 +48,22 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
     <form method="POST" wire:submit="register" class="flex flex-col gap-6">
         <!-- Name -->
-        <flux:input
-            wire:model="name"
-            :label="__('Name')"
-            type="text"
-            required
-            autofocus
-            autocomplete="name"
-            :placeholder="__('Full name')"
-        />
+        <flux:input wire:model="name" :label="__('Name')" type="text" required autofocus autocomplete="name"
+            :placeholder="__('Full name')" />
 
         <!-- Email Address -->
-        <flux:input
-            wire:model="email"
-            :label="__('Email address')"
-            type="email"
-            required
-            autocomplete="email"
-            placeholder="email@example.com"
-        />
+        <flux:input wire:model="email" :label="__('Email address')" type="email" required autocomplete="email"
+            placeholder="email@example.com" />
 
-        <flux:dropdown>
-            <flux:button icon:trailing="chevron-down" class="w-full">
-                {{ $role ? __(ucfirst($role)) : __('Register as') }}
-            </flux:button>
-            <flux:menu>
-                <flux:menu.radio.group wire:model="role">
-                    <flux:menu.radio value="student">{{ __('Student') }}</flux:menu.radio>
-                    <flux:menu.radio value="instructor">{{ __('Instructor') }}</flux:menu.radio>
-                    <flux:menu.radio value="admin">{{ __('Admin') }}</flux:menu.radio>
-                </flux:menu.radio.group>
-            </flux:menu>
-        </flux:dropdown>
+
 
         <!-- Password -->
-        <flux:input
-            wire:model="password"
-            :label="__('Password')"
-            type="password"
-            required
-            autocomplete="new-password"
-            :placeholder="__('Password')"
-            viewable
-        />
+        <flux:input wire:model="password" :label="__('Password')" type="password" required autocomplete="new-password"
+            :placeholder="__('Password')" viewable />
 
         <!-- Confirm Password -->
-        <flux:input
-            wire:model="password_confirmation"
-            :label="__('Confirm password')"
-            type="password"
-            required
-            autocomplete="new-password"
-            :placeholder="__('Confirm password')"
-            viewable
-        />
+        <flux:input wire:model="password_confirmation" :label="__('Confirm password')" type="password" required
+            autocomplete="new-password" :placeholder="__('Confirm password')" viewable />
 
         <div class="flex items-center justify-end">
             <flux:button type="submit" variant="primary" class="w-full">

@@ -15,7 +15,9 @@ class TakeQuiz extends Component
     public array $userAnswers = [];
     public ?Submission $submission = null;
 
-    protected ProgressService $progressService;
+
+
+    protected GradingService $gradingService;
 
     public function boot(GradingService $gradingService): void
     {
@@ -60,7 +62,7 @@ class TakeQuiz extends Component
     {
         $this->saveProgress();
         $this->gradingService->grade($this->submission);
-        
+
         // Redirect to a results page
         return redirect()->route('quiz.result', $this->submission->id);
     }

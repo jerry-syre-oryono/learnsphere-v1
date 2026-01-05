@@ -12,14 +12,14 @@ use App\Livewire\Quiz\TakeQuiz;
 use App\Livewire\Quiz\QuizResult;
 
 
-Route::get('/', fn () => view('welcome'))->name('home');
+Route::get('/', fn() => view('welcome'))->name('home');
 
 Route::get('dashboard', StudentDashboard::class)
-    ->middleware(['auth', 'verified'])
+    ->middleware(['auth', 'verified', 'approved'])
     ->name('dashboard');
 
 // Authenticated user routes
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'approved'])->group(function () {
     // Settings Routes
     Route::redirect('settings', 'settings/profile');
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
@@ -40,7 +40,14 @@ Route::middleware(['auth'])->group(function () {
     Route::get('media/{media}/serve', [MediaController::class, 'serve'])->name('media.stream.serve');
 
     // Admin-specific routes (from previous steps)
-    Volt::route('admin/dashboard', 'admin.dashboard')->middleware('role:admin');
+    Volt::route('admin/dashboard', 'admin.dashboard')->name('admin.dashboard')->middleware('role:admin|instructor');
+
+    // Explicit Controller Routes for complex creation logic
+    Route::get('admin/courses/create', [App\Http\Controllers\Admin\CourseController::class, 'create'])->name('admin.courses.create')->middleware('role:admin|instructor');
+    Route::post('admin/courses', [App\Http\Controllers\Admin\CourseController::class, 'store'])->name('admin.courses.store')->middleware('role:admin|instructor');
+
+    Volt::route('admin/users', 'admin.usermanagement')->name('admin.users')->middleware('role:admin');
+
     // Other admin routes like managing courses, quizzes etc. would go here
 
     // Instructor/Admin specific routes for Gradebook (from previous steps)
@@ -48,4 +55,4 @@ Route::middleware(['auth'])->group(function () {
     Route::get('courses/{course}/gradebook/export', [GradebookController::class, 'export'])->name('gradebook.export');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
