@@ -30,4 +30,9 @@ class Course extends Model
     {
         return $this->belongsToMany(User::class, 'enrollments');
     }
+
+    public function modules()
+    {
+        return $this->hasMany(Module::class)->orderBy('order');
+    }
 }

@@ -14,4 +14,14 @@ class Lesson extends Model
     {
         return $this->belongsTo(Course::class);
     }
+
+    public function module()
+    {
+        return $this->belongsTo(Module::class);
+    }
+
+    public function quiz()
+    {
+        return $this->hasOne(Quiz::class);
+    }
 }

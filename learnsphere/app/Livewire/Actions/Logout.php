@@ -3,20 +3,21 @@
 namespace App\Livewire\Actions;
 
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
+use Livewire\Volt\Component;
 
-class Logout
+class Logout extends Component
 {
     /**
      * Log the current user out of the application.
      */
-    public function __invoke()
+    public function handle(): void
     {
         Auth::guard('web')->logout();
 
-        Session::invalidate();
-        Session::regenerateToken();
+        session()->invalidate();
+        session()->regenerateToken();
 
-        return redirect('/');
+        // Temporarily return a simple response to debug "View [] not found"
+        $this->redirect(route('home'));
     }
 }

@@ -15,12 +15,15 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        User::firstOrCreate(
+            ['email' => 'test@example.com'],
+            ['name' => 'Test User', 'password' => \Hash::make('password')] // Add a default password
+        );
 
         $this->call(RolesTableSeeder::class);
+        $this->call(LmsSeeder::class);
+        $this->call(DemoUserSeeder::class);
+        $this->call(DemoSeeder::class);
 
     }
 }

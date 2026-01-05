@@ -51,11 +51,12 @@ class AuthenticationTest extends TestCase
     public function test_users_can_logout(): void
     {
         $user = User::factory()->create();
+        $this->actingAs($user);
 
-        $response = $this->actingAs($user)->post('/logout');
-
-        $response->assertRedirect('/');
+        LivewireVolt::test(\App\Livewire\Actions\Logout::class)
+            ->call('handle'); // Assuming the logout action has a 'handle' method
 
         $this->assertGuest();
+        $this->assertRedirect('/'); // Assuming logout redirects to home
     }
 }
