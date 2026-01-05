@@ -35,6 +35,10 @@
                             <flux:badge size="sm" color="red" class="ml-auto">{{ $pendingCount }}</flux:badge>
                         @endif
                     </flux:navlist.item>
+                    <flux:navlist.item icon="academic-cap" :href="route('admin.gradebook')"
+                        :current="request()->routeIs('admin.gradebook')" wire:navigate>
+                        {{ __('Gradebook') }}
+                    </flux:navlist.item>
                 @endif
             </flux:navlist.group>
         </flux:navlist>
@@ -145,6 +149,7 @@
 
     {{ $slot }}
 
+    @stack('scripts')
     @fluxScripts
 </body>
 

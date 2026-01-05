@@ -16,28 +16,39 @@ class StoreCourseRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
-            'course.title' => ['required', 'string', 'max:255'],
-            'course.description' => ['required', 'string'],
-            'course.thumbnail' => ['nullable', 'url'], // Or image validation if file upload
-            'course.published' => ['boolean'],
+        $isUpdate = $this->isMethod('PUT') || $this->isMethod('PATCH');
 
-            'modules' => ['required', 'array', 'min:1'],
-            'modules.*.title' => ['required', 'string', 'max:255'],
+        return [
+            'course.title' => [$isUpdate ? 'sometimes' : 'required', 'nullable', 'string', 'max:255'],
+            'course.description' => [$isUpdate ? 'sometimes' : 'required', 'nullable', 'string'],
+            'course.thumbnail' => ['nullable', 'url'],
+            'course.published' => ['nullable', 'boolean'],
+            'course.enrollment_code' => ['nullable', 'string', 'max:50'],
+
+            'modules' => ['nullable', 'array'],
+            'modules.*.id' => ['nullable', 'exists:modules,id'],
+            'modules.*.title' => [$isUpdate ? 'sometimes' : 'required', 'nullable', 'string', 'max:255'],
             'modules.*.description' => ['nullable', 'string'],
-            'modules.*.order' => ['required', 'integer'],
+            'modules.*.order' => ['nullable', 'integer'],
 
             'modules.*.lessons' => ['nullable', 'array'],
-            'modules.*.lessons.*.title' => ['required', 'string', 'max:255'],
+            'modules.*.lessons.*.id' => ['nullable', 'exists:lessons,id'],
+            'modules.*.lessons.*.title' => [$isUpdate ? 'sometimes' : 'required', 'nullable', 'string', 'max:255'],
+            'modules.*.lessons.*.content_type' => ['nullable', 'string', 'in:text,video,pdf,doc'],
             'modules.*.lessons.*.content' => ['nullable', 'string'],
             'modules.*.lessons.*.video_url' => ['nullable', 'url'],
-            'modules.*.lessons.*.order' => ['required', 'integer'],
+            'modules.*.lessons.*.attachment' => ['nullable', 'file', 'max:10240'],
+            'modules.*.lessons.*.attachment_name' => ['nullable', 'string', 'max:255'],
+            'modules.*.lessons.*.order' => ['nullable', 'integer'],
 
             'modules.*.assignments' => ['nullable', 'array'],
-            'modules.*.assignments.*.title' => ['required', 'string', 'max:255'],
+            'modules.*.assignments.*.id' => ['nullable', 'exists:assignments,id'],
+            'modules.*.assignments.*.title' => [$isUpdate ? 'sometimes' : 'required', 'nullable', 'string', 'max:255'],
             'modules.*.assignments.*.description' => ['nullable', 'string'],
             'modules.*.assignments.*.due_date' => ['nullable', 'date'],
-            'modules.*.assignments.*.max_score' => ['integer', 'min:0'],
+            'modules.*.assignments.*.max_score' => ['nullable', 'integer', 'min:0'],
+            'modules.*.assignments.*.attachment' => ['nullable', 'file', 'max:10240'],
+            'modules.*.assignments.*.attachment_name' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

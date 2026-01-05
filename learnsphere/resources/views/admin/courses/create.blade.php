@@ -4,8 +4,18 @@
             <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-white">{{ __('Create New Course') }}</h2>
 
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-xl sm:rounded-lg p-6">
+                @if ($errors->any())
+                    <div class="mb-4 p-4 bg-red-100 border-l-4 border-red-500 text-red-700">
+                        <ul class="list-disc list-inside">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
                 <!-- Simple JS-driven form for nested data. In a real app, use Livewire or React/Vue -->
-                <form action="{{ route('admin.courses.store') }}" method="POST" id="courseForm">
+                <form action="{{ route('admin.courses.store') }}" method="POST" id="courseForm"
+                    enctype="multipart/form-data">
                     @csrf
 
                     <!-- Course Details -->
@@ -28,12 +38,24 @@
                                     required></textarea>
                             </div>
 
-                            <div>
-                                <label class="inline-flex items-center">
-                                    <input type="checkbox" name="course[published]" value="1"
-                                        class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
-                                    <span class="ml-2 text-gray-700 dark:text-gray-300">Publish immediately</span>
-                                </label>
+                            <div class="flex items-center space-x-8">
+                                <div class="flex-1">
+                                    <label class="inline-flex items-center">
+                                        <input type="checkbox" name="course[published]" value="1"
+                                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                                        <span class="ml-2 text-gray-700 dark:text-gray-300">Publish immediately</span>
+                                    </label>
+                                </div>
+
+                                <div class="flex-1">
+                                    <label for="enrollment_code"
+                                        class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Secure Enrollment Code (Optional)
+                                    </label>
+                                    <input type="text" name="course[enrollment_code]" id="enrollment_code"
+                                        placeholder="Leave empty for public"
+                                        class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -41,7 +63,8 @@
                     <!-- Modules Section -->
                     <div id="modules-container">
                         <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
-                            {{ __('Course Curriculum') }}</h3>
+                            {{ __('Course Curriculum') }}
+                        </h3>
                         <!-- Modules will be added here by JS -->
                     </div>
 
@@ -72,32 +95,32 @@
                 const index = moduleCount++;
 
                 const html = `
-                    <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 bg-gray-50 dark:bg-gray-900/50">
-                        <div class="flex justify-between items-start mb-4">
-                            <h4 class="text-md font-medium text-gray-800 dark:text-gray-200">Module ${index + 1}</h4>
-                        </div>
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 bg-gray-50 dark:bg-gray-900/50">
+                                <div class="flex justify-between items-start mb-4">
+                                    <h4 class="text-md font-medium text-gray-800 dark:text-gray-200">Module ${index + 1}</h4>
+                                </div>
 
-                        <div class="grid grid-cols-1 gap-4 mb-4">
-                            <input type="hidden" name="modules[${index}][order]" value="${index + 1}">
-                            <div>
-                                <input type="text" name="modules[${index}][title]" placeholder="Module Title" class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 shadow-sm text-sm" required>
-                            </div>
-                            <div>
-                                <textarea name="modules[${index}][description]" placeholder="Module Description" rows="2" class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 shadow-sm text-sm"></textarea>
-                            </div>
-                        </div>
+                                <div class="grid grid-cols-1 gap-4 mb-4">
+                                    <input type="hidden" name="modules[${index}][order]" value="${index + 1}">
+                                    <div>
+                                        <input type="text" name="modules[${index}][title]" placeholder="Module Title" class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 shadow-sm text-sm" required>
+                                    </div>
+                                    <div>
+                                        <textarea name="modules[${index}][description]" placeholder="Module Description" rows="2" class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-800 shadow-sm text-sm"></textarea>
+                                    </div>
+                                </div>
 
-                        <!-- Lessons & Assignments Container -->
-                        <div class="pl-4 border-l-2 border-indigo-200 space-y-3">
-                             <div id="module-${index}-items"></div>
+                                <!-- Lessons & Assignments Container -->
+                                <div class="pl-4 border-l-2 border-indigo-200 space-y-3">
+                                     <div id="module-${index}-items"></div>
 
-                             <div class="flex gap-2">
-                                <button type="button" onclick="addLesson(${index})" class="text-xs text-indigo-600 hover:text-indigo-800">+ Add Lesson</button>
-                                <button type="button" onclick="addAssignment(${index})" class="text-xs text-green-600 hover:text-green-800">+ Add Assignment</button>
+                                     <div class="flex gap-2">
+                                        <button type="button" onclick="addLesson(${index})" class="text-xs text-indigo-600 hover:text-indigo-800">+ Add Lesson</button>
+                                        <button type="button" onclick="addAssignment(${index})" class="text-xs text-green-600 hover:text-green-800">+ Add Assignment</button>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                `;
+                        `;
 
                 container.insertAdjacentHTML('beforeend', html);
             }
@@ -107,16 +130,51 @@
                 const count = container.children.length; // Simple count for unique ordering
 
                 const html = `
-                    <div class="bg-white dark:bg-gray-800 p-3 rounded shadow-sm mb-2">
-                        <p class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Lesson</p>
-                        <input type="hidden" name="modules[${moduleIndex}][lessons][${count}][order]" value="${count + 1}">
-                        <div class="grid grid-cols-1 gap-2">
-                            <input type="text" name="modules[${moduleIndex}][lessons][${count}][title]" placeholder="Lesson Title" class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 shadow-sm text-sm" required>
-                            <input type="url" name="modules[${moduleIndex}][lessons][${count}][video_url]" placeholder="Video URL (optional)" class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 shadow-sm text-sm">
-                        </div>
-                    </div>
-                `;
+                            <div class="bg-white dark:bg-gray-800 p-3 rounded shadow-sm mb-2">
+                                <p class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Lesson</p>
+                                <input type="hidden" name="modules[${moduleIndex}][lessons][${count}][order]" value="${count + 1}">
+                                <div class="grid grid-cols-1 gap-2">
+                                    <input type="text" name="modules[${moduleIndex}][lessons][${count}][title]" placeholder="Lesson Title" class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 shadow-sm text-sm" required>
+
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <select name="modules[${moduleIndex}][lessons][${count}][content_type]" class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 shadow-sm text-sm p-2" onchange="toggleLessonInputs(this, ${moduleIndex}, ${count})">
+                                            <option value="text">Text Content</option>
+                                            <option value="video">Video URL</option>
+                                            <option value="pdf">PDF Document</option>
+                                        </select>
+                                    </div>
+
+                                    <textarea name="modules[${moduleIndex}][lessons][${count}][content]" placeholder="Lesson Content" rows="3" class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 shadow-sm text-sm lesson-text-input"></textarea>
+
+                                    <input type="url" name="modules[${moduleIndex}][lessons][${count}][video_url]" placeholder="Video URL (YouTube/Vimeo)" class="hidden w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 shadow-sm text-sm lesson-video-input">
+
+                                    <input type="file" name="modules[${moduleIndex}][lessons][${count}][attachment]" class="hidden w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 dark:file:bg-gray-700 dark:file:text-gray-300 lesson-file-input">
+                                </div>
+                            </div>
+                        `;
                 container.insertAdjacentHTML('beforeend', html);
+            }
+
+            function toggleLessonInputs(select, moduleIndex, lessonIndex) {
+                const container = select.closest('.grid'); // Closest common parent
+                const textInput = container.querySelector('.lesson-text-input');
+                const videoInput = container.querySelector('.lesson-video-input');
+                const fileInput = container.querySelector('.lesson-file-input');
+
+                // Hide all first
+                textInput.classList.add('hidden');
+                videoInput.classList.add('hidden');
+                fileInput.classList.add('hidden');
+
+                const value = select.value;
+
+                if (value === 'text') {
+                    textInput.classList.remove('hidden');
+                } else if (value === 'video') {
+                    videoInput.classList.remove('hidden');
+                } else if (value === 'pdf') {
+                    fileInput.classList.remove('hidden');
+                }
             }
 
             function addAssignment(moduleIndex) {
@@ -127,17 +185,17 @@
                 const key = Date.now();
 
                 const html = `
-                    <div class="bg-white dark:bg-gray-800 p-3 rounded shadow-sm border-l-4 border-green-500 mb-2">
-                        <p class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Assignment</p>
-                        <div class="grid grid-cols-1 gap-2">
-                            <input type="text" name="modules[${moduleIndex}][assignments][${key}][title]" placeholder="Assignment Title" class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 shadow-sm text-sm" required>
-                            <div class="grid grid-cols-2 gap-2">
-                                <input type="number" name="modules[${moduleIndex}][assignments][${key}][max_score]" placeholder="Max Score" value="100" class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 shadow-sm text-sm">
-                                <input type="date" name="modules[${moduleIndex}][assignments][${key}][due_date]" class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 shadow-sm text-sm">
+                            <div class="bg-white dark:bg-gray-800 p-3 rounded shadow-sm border-l-4 border-green-500 mb-2">
+                                <p class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Assignment</p>
+                                <div class="grid grid-cols-1 gap-2">
+                                    <input type="text" name="modules[${moduleIndex}][assignments][${key}][title]" placeholder="Assignment Title" class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 shadow-sm text-sm" required>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <input type="number" name="modules[${moduleIndex}][assignments][${key}][max_score]" placeholder="Max Score" value="100" class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 shadow-sm text-sm">
+                                        <input type="date" name="modules[${moduleIndex}][assignments][${key}][due_date]" class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 shadow-sm text-sm">
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                `;
+                        `;
                 container.insertAdjacentHTML('beforeend', html);
             }
 

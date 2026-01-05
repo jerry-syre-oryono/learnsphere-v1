@@ -18,6 +18,7 @@ class CourseCreationService
             $courseData = $data['course'];
             $courseData['instructor_id'] = $instructorId;
             $courseData['slug'] = Str::slug($courseData['title']) . '-' . Str::random(6);
+            $courseData['published'] = $courseData['published'] ?? false;
 
             $course = Course::create($courseData);
 
@@ -41,13 +42,20 @@ class CourseCreationService
 
         if (isset($moduleData['lessons'])) {
             foreach ($moduleData['lessons'] as $lessonData) {
-                $module->lessons()->create([
-                    'course_id' => $course->id, // Redundant if using proper relations but good for safety
+                $lessonFields = [
+                    'course_id' => $course->id,
                     'title' => $lessonData['title'],
+                    'content_type' => $lessonData['content_type'] ?? 'text',
                     'content' => $lessonData['content'] ?? null,
                     'video_url' => $lessonData['video_url'] ?? null,
                     'order' => $lessonData['order'],
-                ]);
+                ];
+
+                if (isset($lessonData['attachment']) && $lessonData['attachment'] instanceof \Illuminate\Http\UploadedFile) {
+                    $lessonFields['attachment_path'] = $lessonData['attachment']->store('attachments', 'public');
+                }
+
+                $module->lessons()->create($lessonFields);
             }
         }
 

@@ -9,7 +9,11 @@ class Course extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['instructor_id', 'title', 'description', 'slug', 'thumbnail', 'published'];
+    protected $fillable = ['instructor_id', 'title', 'description', 'slug', 'thumbnail', 'published', 'enrollment_code'];
+
+    protected $casts = [
+        'published' => 'boolean',
+    ];
 
     public function instructor()
     {
@@ -34,5 +38,10 @@ class Course extends Model
     public function modules()
     {
         return $this->hasMany(Module::class)->orderBy('order');
+    }
+
+    public function scopePublished($query)
+    {
+        return $query->where('published', true);
     }
 }

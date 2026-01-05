@@ -104,15 +104,11 @@ class User extends Authenticatable
 
     public function completedLessons()
     {
-
-
-
         return $this->belongsToMany(Lesson::class, 'lesson_user');
-
-
-
     }
 
-
-
+    public function submissions()
+    {
+        return $this->hasMany(Submission::class);
+    }
 }

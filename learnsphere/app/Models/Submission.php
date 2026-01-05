@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Submission extends Model
 {
@@ -18,6 +19,11 @@ class Submission extends Model
 
     protected $casts = [
         'answers' => 'array',
+        'score' => 'decimal:2',
+        'max_score' => 'decimal:2',
+        'percentage' => 'decimal:2',
+        'started_at' => 'datetime',
+        'completed_at' => 'datetime',
     ];
 
     public function user(): BelongsTo
@@ -28,5 +34,15 @@ class Submission extends Model
     public function quiz(): BelongsTo
     {
         return $this->belongsTo(Quiz::class);
+    }
+
+    public function responses(): HasMany
+    {
+        return $this->hasMany(QuestionResponse::class);
+    }
+
+    public function isPassed(): bool
+    {
+        return $this->percentage >= $this->quiz->passing_score;
     }
 }

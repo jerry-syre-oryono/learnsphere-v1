@@ -45,14 +45,52 @@ Route::middleware(['auth', 'approved'])->group(function () {
     // Explicit Controller Routes for complex creation logic
     Route::get('admin/courses/create', [App\Http\Controllers\Admin\CourseController::class, 'create'])->name('admin.courses.create')->middleware('role:admin|instructor');
     Route::post('admin/courses', [App\Http\Controllers\Admin\CourseController::class, 'store'])->name('admin.courses.store')->middleware('role:admin|instructor');
+    Route::get('admin/courses/{course}/edit', App\Http\Controllers\Admin\CourseEditController::class)->name('admin.courses.edit')->middleware('role:admin|instructor');
+    Route::put('admin/courses/{course}', [App\Http\Controllers\Admin\CourseController::class, 'update'])->name('admin.courses.update')->middleware('role:admin|instructor');
 
     Volt::route('admin/users', 'admin.usermanagement')->name('admin.users')->middleware('role:admin');
+    Route::get('admin/gradebook', [GradebookController::class, 'index'])->name('admin.gradebook')->middleware('role:admin');
 
     // Other admin routes like managing courses, quizzes etc. would go here
 
     // Instructor/Admin specific routes for Gradebook (from previous steps)
     Route::get('courses/{course}/gradebook', [GradebookController::class, 'index'])->name('gradebook.index');
     Route::get('courses/{course}/gradebook/export', [GradebookController::class, 'export'])->name('gradebook.export');
+
+    // Module API Routes
+    Route::prefix('api')->middleware('role:admin|instructor')->group(function () {
+        Route::post('courses/{course}/modules', [App\Http\Controllers\ModuleController::class, 'store'])->name('api.modules.store');
+        Route::put('modules/{module}', [App\Http\Controllers\ModuleController::class, 'update'])->name('api.modules.update');
+        Route::post('courses/{course}/modules/reorder', [App\Http\Controllers\ModuleController::class, 'reorder'])->name('api.modules.reorder');
+        Route::delete('modules/{module}', [App\Http\Controllers\ModuleController::class, 'destroy'])->name('api.modules.destroy');
+        Route::post('modules/{module}/duplicate', [App\Http\Controllers\ModuleController::class, 'duplicate'])->name('api.modules.duplicate');
+
+        // Lesson API Routes
+        Route::post('modules/{module}/lessons', [App\Http\Controllers\LessonController::class, 'store'])->name('api.lessons.store');
+        Route::put('lessons/{lesson}', [App\Http\Controllers\LessonController::class, 'update'])->name('api.lessons.update');
+        Route::post('lessons/{lesson}/upload', [App\Http\Controllers\LessonController::class, 'uploadMaterial'])->name('api.lessons.upload');
+        Route::delete('media/{media}', [App\Http\Controllers\LessonController::class, 'deleteMedia'])->name('api.media.destroy');
+        Route::post('modules/{module}/lessons/reorder', [App\Http\Controllers\LessonController::class, 'reorder'])->name('api.lessons.reorder');
+        Route::delete('lessons/{lesson}', [App\Http\Controllers\LessonController::class, 'destroy'])->name('api.lessons.destroy');
+
+        // Assessment API Routes
+        Route::post('lessons/{lesson}/assessments', [App\Http\Controllers\AssessmentController::class, 'store'])->name('api.assessments.store');
+        Route::post('quizzes/{quiz}/questions', [App\Http\Controllers\AssessmentController::class, 'addQuestion'])->name('api.questions.store');
+        Route::put('questions/{question}', [App\Http\Controllers\AssessmentController::class, 'updateQuestion'])->name('api.questions.update');
+        Route::delete('questions/{question}', [App\Http\Controllers\AssessmentController::class, 'deleteQuestion'])->name('api.questions.destroy');
+        Route::get('quizzes/{quiz}/stats', [App\Http\Controllers\AssessmentController::class, 'stats'])->name('api.assessments.stats');
+        Route::post('responses/{response}/grade', [App\Http\Controllers\AssessmentController::class, 'gradeEssay'])->name('api.responses.grade');
+    });
+
+    // Student Assessment Routes
+    Route::post('quizzes/{quiz}/start', [App\Http\Controllers\AssessmentController::class, 'startAttempt'])->name('quiz.start');
+    Route::post('submissions/{submission}/submit', [App\Http\Controllers\AssessmentController::class, 'submit'])->name('submission.submit');
+    Route::get('quizzes/{quiz}/result', [App\Http\Controllers\AssessmentController::class, 'result'])->name('quiz.myresult');
+
+    // Secure Media Streaming
+    Route::get('lessons/media/{media}/stream', [App\Http\Controllers\LessonController::class, 'streamMedia'])->name('lesson.media.stream');
+    Route::get('lessons/{lesson}/attachment/stream', [App\Http\Controllers\LessonController::class, 'streamAttachment'])->name('lesson.attachment.stream');
+    Route::get('assignments/{assignment}/stream', [App\Http\Controllers\AssignmentController::class, 'stream'])->name('assignment.stream');
 });
 
 require __DIR__ . '/auth.php';

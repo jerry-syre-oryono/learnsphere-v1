@@ -22,8 +22,20 @@ class LessonView extends Component
 
     public function mount(Lesson $lesson): void
     {
+        $user = Auth::user();
+        $course = $lesson->course;
+
+        // Security check: must be enrolled, instructor, or admin
+        $isEnrolled = $user->enrolledCourses()->where('course_id', $course->id)->exists();
+        $isInstructor = $course->instructor_id === $user->id;
+        $isAdmin = $user->hasRole('admin');
+
+        if (!$isEnrolled && !$isInstructor && !$isAdmin) {
+            abort(403, 'You must be enrolled to view this lesson.');
+        }
+
         $this->lesson = $lesson->load('quiz'); // Eager load the quiz if it exists
-        $this->isCompleted = Auth::user()->completedLessons->contains($lesson->id);
+        $this->isCompleted = $user->completedLessons->contains($lesson->id);
         $this->quiz = $lesson->quiz;
     }
 
