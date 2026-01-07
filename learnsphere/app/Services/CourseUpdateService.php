@@ -94,6 +94,14 @@ class CourseUpdateService
             } else {
                 $lesson = $module->lessons()->create($lessonFields);
             }
+
+            if (isset($lessonData['assessment_weight'])) {
+                $assessment = $lesson->assessments()->first();
+                if ($assessment) {
+                    $assessment->update(['weight' => $lessonData['assessment_weight']]);
+                }
+            }
+
             $processedLessonIds[] = $lesson->id;
         }
 
@@ -113,6 +121,7 @@ class CourseUpdateService
                 'description' => $assignmentData['description'] ?? null,
                 'due_date' => $assignmentData['due_date'] ?? null,
                 'max_score' => $assignmentData['max_score'] ?? 100,
+                'weight' => $assignmentData['weight'] ?? 0,
                 'attachment_name' => $assignmentData['attachment_name'] ?? null,
             ];
 

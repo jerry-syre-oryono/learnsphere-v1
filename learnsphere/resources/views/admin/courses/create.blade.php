@@ -189,9 +189,10 @@
                                 <p class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">Assignment</p>
                                 <div class="grid grid-cols-1 gap-2">
                                     <input type="text" name="modules[${moduleIndex}][assignments][${key}][title]" placeholder="Assignment Title" class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 shadow-sm text-sm" required>
-                                    <div class="grid grid-cols-2 gap-2">
+                                    <div class="grid grid-cols-3 gap-2">
                                         <input type="number" name="modules[${moduleIndex}][assignments][${key}][max_score]" placeholder="Max Score" value="100" class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 shadow-sm text-sm">
                                         <input type="date" name="modules[${moduleIndex}][assignments][${key}][due_date]" class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 shadow-sm text-sm">
+                                        <input type="number" name="modules[${moduleIndex}][assignments][${key}][weight]" placeholder="Weight %" value="0" class="block w-full rounded-md border-gray-300 dark:border-gray-700 dark:bg-gray-900 shadow-sm text-sm">
                                     </div>
                                 </div>
                             </div>

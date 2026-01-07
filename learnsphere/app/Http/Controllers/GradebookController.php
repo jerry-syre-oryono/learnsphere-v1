@@ -9,7 +9,7 @@ class GradebookController extends Controller
 {
     public function index()
     {
-        $courses = Course::with(['students.submissions.quiz'])->get();
+        $courses = Course::with(['assignments.module', 'students.submissions.submittable', 'students.submissions.quiz'])->get();
 
         return view('admin.gradebook.index', compact('courses'));
     }

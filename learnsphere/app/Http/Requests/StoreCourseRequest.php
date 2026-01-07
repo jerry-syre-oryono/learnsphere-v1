@@ -37,7 +37,7 @@ class StoreCourseRequest extends FormRequest
             'modules.*.lessons.*.content_type' => ['nullable', 'string', 'in:text,video,pdf,doc'],
             'modules.*.lessons.*.content' => ['nullable', 'string'],
             'modules.*.lessons.*.video_url' => ['nullable', 'url'],
-            'modules.*.lessons.*.attachment' => ['nullable', 'file', 'max:10240'],
+            'modules.*.lessons.*.attachment' => ['nullable', 'file', 'mimes:pdf,doc,docx,png,jpg,jpeg,gif,zip,rar|max:51200'],
             'modules.*.lessons.*.attachment_name' => ['nullable', 'string', 'max:255'],
             'modules.*.lessons.*.order' => ['nullable', 'integer'],
 
@@ -45,10 +45,13 @@ class StoreCourseRequest extends FormRequest
             'modules.*.assignments.*.id' => ['nullable', 'exists:assignments,id'],
             'modules.*.assignments.*.title' => [$isUpdate ? 'sometimes' : 'required', 'nullable', 'string', 'max:255'],
             'modules.*.assignments.*.description' => ['nullable', 'string'],
+            'modules.*.assignments.*.weight' => ['nullable', 'numeric', 'min:0'],
             'modules.*.assignments.*.due_date' => ['nullable', 'date'],
             'modules.*.assignments.*.max_score' => ['nullable', 'integer', 'min:0'],
-            'modules.*.assignments.*.attachment' => ['nullable', 'file', 'max:10240'],
+            'modules.*.assignments.*.attachment' => ['nullable', 'file', 'mimes:pdf,doc,docx,png,jpg,jpeg,gif,zip,rar|max:51200'],
             'modules.*.assignments.*.attachment_name' => ['nullable', 'string', 'max:255'],
+
+            'modules.*.lessons.*.assessment_weight' => ['nullable', 'numeric', 'min:0'],
         ];
     }
 }

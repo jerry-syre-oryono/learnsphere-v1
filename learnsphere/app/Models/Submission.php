@@ -36,6 +36,11 @@ class Submission extends Model
         return $this->belongsTo(Quiz::class);
     }
 
+    public function submittable()
+    {
+        return $this->morphTo();
+    }
+
     public function responses(): HasMany
     {
         return $this->hasMany(QuestionResponse::class);

@@ -12,6 +12,7 @@ class CourseDisplay extends Component
     public Course $course;
     public $modules;
     public array $completedLessonIds = [];
+    public float $progress = 0;
 
     protected ProgressService $progressService;
 
@@ -25,13 +26,18 @@ class CourseDisplay extends Component
         $this->course = $course->load(['modules.lessons.quiz', 'modules.assignments']); // Eager load modules, lessons, quizzes, and assignments
         $this->modules = $this->course->modules;
 
-        $this->completedLessonIds = Auth::user()
+        $user = Auth::user();
+        $this->completedLessonIds = $user
             ->completedLessons()
             ->whereIn('lessons.course_id', [$course->id])
             ->pluck('lessons.id')
             ->toArray();
 
-        $this->isEnrolled = Auth::user()->enrolledCourses()->where('course_id', $course->id)->exists();
+        $this->isEnrolled = $user->enrolledCourses()->where('course_id', $course->id)->exists();
+
+        if ($this->isEnrolled) {
+            $this->progress = $this->progressService->getOverallCourseProgress($user, $course);
+        }
     }
 
     public bool $isEnrolled = false;

@@ -188,12 +188,21 @@
                                                 </div>
 
                                                 <div x-show="lesson.content_type === 'quiz'" class="mt-3">
-                                                    <button
-                                                        @click="$dispatch('open-quiz-builder', { lessonId: lesson.id })"
-                                                        type="button"
-                                                        class="w-full py-2 text-sm text-white bg-purple-600 hover:bg-purple-700 rounded">
-                                                        Build Quiz
-                                                    </button>
+                                                    <div x-show="lesson.assessment" class="bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-100 dark:border-purple-800/50">
+                                                        <div class="flex justify-between items-center">
+                                                            <p class="text-sm font-medium text-purple-800 dark:text-purple-300">
+                                                                Quiz Weight: <span x-text="lesson.assessment.weight || 0"></span>%
+                                                            </p>
+                                                            <button @click="$dispatch('open-quiz-builder', { lessonId: lesson.id, assessment: lesson.assessment })" type="button" class="text-sm text-purple-600 hover:underline">
+                                                                Edit Quiz
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div x-show="!lesson.assessment">
+                                                        <button @click="$dispatch('open-quiz-builder', { lessonId: lesson.id })" type="button" class="w-full py-2 text-sm text-white bg-purple-600 hover:bg-purple-700 rounded">
+                                                            Build Quiz
+                                                        </button>
+                                                    </div>
                                                 </div>
 
                                                 <div x-show="lesson.content_type === 'pdf'" class="mt-3">
@@ -280,7 +289,12 @@
                                                     </button>
                                                 </div>
 
-                                                <div class="grid grid-cols-2 gap-3 mb-4">
+                                                <div class="mt-3">
+                                                    <textarea x-model="assignment.description" placeholder="Assignment description..." rows="3"
+                                                        class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-800 text-sm"></textarea>
+                                                </div>
+
+                                                <div class="grid grid-cols-3 gap-3 mb-4">
                                                     <div>
                                                         <label
                                                             class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Max
@@ -294,6 +308,14 @@
                                                             class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Due
                                                             Date</label>
                                                         <input type="date" x-model="assignment.due_date"
+                                                            class="w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-sm py-1">
+                                                    </div>
+                                                    <div>
+                                                        <label
+                                                            class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Weight
+                                                            %</label>
+                                                        <input type="number" x-model.number="assignment.weight"
+                                                            placeholder="Weight %"
                                                             class="w-full rounded border-gray-300 dark:border-gray-700 dark:bg-gray-800 text-sm py-1">
                                                     </div>
                                                 </div>
@@ -363,12 +385,18 @@
                 </div>
 
                 {{-- Save Button --}}
-                <div class="flex justify-end space-x-3">
+                <div class="flex justify-end items-center space-x-3">
+                    <div class="text-right">
+                        <p class="text-sm font-medium" :class="{ 'text-red-500': totalWeight !== 100, 'text-green-600': totalWeight === 100 }">
+                            Total Weight: <span x-text="totalWeight"></span>%
+                        </p>
+                        <p x-show="totalWeight !== 100" class="text-xs text-red-500">Total weight must be exactly 100% to save.</p>
+                    </div>
                     <a href="{{ route('admin.dashboard') }}"
                         class="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition">
                         Cancel
                     </a>
-                    <button @click="save()" type="button" :disabled="saving"
+                    <button @click="save()" type="button" :disabled="saving || totalWeight !== 100"
                         class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 flex items-center space-x-2 transition">
                         <svg x-show="saving" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
@@ -386,8 +414,8 @@
 
 
     {{-- Quiz Builder Modal --}}
-    <div x-data="{ show: false, lessonId: null }"
-        @open-quiz-builder.window="show = true; lessonId = $event.detail.lessonId; $nextTick(() => { $refs.quizBuilder.lessonId = lessonId; })"
+    <div x-data="{ show: false, lessonId: null, assessment: null }"
+        @open-quiz-builder.window="show = true; lessonId = $event.detail.lessonId; assessment = $event.detail.assessment; $nextTick(() => { $refs.quizBuilder.initBuilder(lessonId, assessment); })"
         @keydown.escape.window="show = false" x-show="show" class="fixed inset-0 z-50 overflow-y-auto"
         style="display: none;">
         <div class="flex items-center justify-center min-h-screen p-4">
@@ -405,7 +433,17 @@
                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 class="relative bg-gray-100 dark:bg-gray-900 rounded-lg shadow-xl transform transition-all sm:w-full sm:max-w-4xl">
                 <div class="p-6">
-                    <div @assessment-saved.window="show = false">
+                    <div @assessment-saved.window="
+                        const savedQuiz = $event.detail;
+                        const moduleIndex = modules.findIndex(m => m.lessons.some(l => l.id === savedQuiz.lesson_id));
+                        if (moduleIndex > -1) {
+                            const lessonIndex = modules[moduleIndex].lessons.findIndex(l => l.id === savedQuiz.lesson_id);
+                            if (lessonIndex > -1) {
+                                modules[moduleIndex].lessons[lessonIndex].assessment = savedQuiz;
+                            }
+                        }
+                        show = false;
+                    ">
                         <x-quiz-builder />
                     </div>
                 </div>
@@ -442,6 +480,21 @@
 
                     saving: false,
 
+                    get totalWeight() {
+                        let total = 0;
+                        this.modules.forEach(module => {
+                            (module.assignments || []).forEach(assignment => {
+                                total += parseFloat(assignment.weight) || 0;
+                            });
+                            (module.lessons || []).forEach(lesson => {
+                                if (lesson.assessment) {
+                                    total += parseFloat(lesson.assessment.weight) || 0;
+                                }
+                            });
+                        });
+                        return total;
+                    },
+
                     init() {
                         if (this.modules.length === 0) {
                             this.addModule();
@@ -477,7 +530,8 @@
                             attachment_path: null,
                             attachment_name: '',
                             file: null,
-                            isDragging: false
+                            isDragging: false,
+                            assessment: null
                         });
                     },
 
@@ -507,8 +561,10 @@
                         this.modules[moduleIndex].assignments.push({
                             id: null,
                             title: '',
+                            description: '',
                             max_score: 100,
                             due_date: null,
+                            weight: 0,
                             attachment_path: null,
                             attachment_name: '',
                             file: null,
@@ -532,6 +588,11 @@
                     },
 
                     async save() {
+                        if (this.totalWeight !== 100) {
+                            alert('Total weight of all assessments and assignments must be exactly 100%.');
+                            return;
+                        }
+
                         this.saving = true;
 
                         // Prepare form data
@@ -561,13 +622,18 @@
                                 if (lesson.file) {
                                     formData.append(`modules[${mIndex}][lessons][${lIndex}][attachment]`, lesson.file);
                                 }
+                                if (lesson.assessment) {
+                                     formData.append(`modules[${mIndex}][lessons][${lIndex}][assessment_weight]`, lesson.assessment.weight || 0);
+                                }
                             });
 
                             (module.assignments || []).forEach((assignment, aIndex) => {
                                 if (assignment.id) formData.append(`modules[${mIndex}][assignments][${aIndex}][id]`, assignment.id);
                                 formData.append(`modules[${mIndex}][assignments][${aIndex}][title]`, assignment.title || '');
+                                formData.append(`modules[${mIndex}][assignments][${aIndex}][description]`, assignment.description || '');
                                 formData.append(`modules[${mIndex}][assignments][${aIndex}][max_score]`, assignment.max_score || 100);
                                 if (assignment.due_date) formData.append(`modules[${mIndex}][assignments][${aIndex}][due_date]`, assignment.due_date);
+                                formData.append(`modules[${mIndex}][assignments][${aIndex}][weight]`, assignment.weight || 0);
                                 formData.append(`modules[${mIndex}][assignments][${aIndex}][attachment_name]`, assignment.attachment_name || '');
                                 if (assignment.file) {
                                     formData.append(`modules[${mIndex}][assignments][${aIndex}][attachment]`, assignment.file);

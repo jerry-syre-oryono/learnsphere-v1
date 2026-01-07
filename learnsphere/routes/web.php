@@ -75,7 +75,10 @@ Route::middleware(['auth', 'approved'])->group(function () {
 
         // Assessment API Routes
         Route::post('lessons/{lesson}/assessments', [App\Http\Controllers\AssessmentController::class, 'store'])->name('api.assessments.store');
+        Route::put('assessments/{assessment}', [App\Http\Controllers\AssessmentController::class, 'update'])->name('api.assessments.update');
+        Route::get('quizzes/{quiz}/questions', [App\Http\Controllers\AssessmentController::class, 'getQuestions'])->name('api.questions.index');
         Route::post('quizzes/{quiz}/questions', [App\Http\Controllers\AssessmentController::class, 'addQuestion'])->name('api.questions.store');
+        Route::post('quizzes/{quiz}/questions/sync', [App\Http\Controllers\AssessmentController::class, 'syncQuestions'])->name('api.questions.sync');
         Route::put('questions/{question}', [App\Http\Controllers\AssessmentController::class, 'updateQuestion'])->name('api.questions.update');
         Route::delete('questions/{question}', [App\Http\Controllers\AssessmentController::class, 'deleteQuestion'])->name('api.questions.destroy');
         Route::get('quizzes/{quiz}/stats', [App\Http\Controllers\AssessmentController::class, 'stats'])->name('api.assessments.stats');
@@ -91,6 +94,15 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::get('lessons/media/{media}/stream', [App\Http\Controllers\LessonController::class, 'streamMedia'])->name('lesson.media.stream');
     Route::get('lessons/{lesson}/attachment/stream', [App\Http\Controllers\LessonController::class, 'streamAttachment'])->name('lesson.attachment.stream');
     Route::get('assignments/{assignment}/stream', [App\Http\Controllers\AssignmentController::class, 'stream'])->name('assignment.stream');
+    // Allow GET to the submit URL to gracefully redirect back to the course page
+    Route::get('assignments/{assignment}/submit', function (App\Models\Assignment $assignment) {
+        $course = $assignment->module->course;
+        return redirect()->route('course.show', $course);
+    })->name('assignment.submit.get');
+
+    Route::post('assignments/{assignment}/submit', [App\Http\Controllers\AssignmentController::class, 'submit'])->name('assignment.submit');
+    Route::get('submissions/{submission}/download', [App\Http\Controllers\SubmissionController::class, 'download'])->name('submission.download');
+    Route::post('submissions/{submission}/grade', [App\Http\Controllers\SubmissionController::class, 'grade'])->name('submission.grade');
 });
 
 require __DIR__ . '/auth.php';

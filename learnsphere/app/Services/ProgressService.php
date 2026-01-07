@@ -8,22 +8,28 @@ use App\Models\User;
 
 class ProgressService
 {
+    protected FinalGradeService $finalGradeService;
+
+    public function __construct(FinalGradeService $finalGradeService)
+    {
+        $this->finalGradeService = $finalGradeService;
+    }
+
     public function markLessonAsComplete(User $user, Lesson $lesson): void
     {
         $user->completedLessons()->syncWithoutDetaching($lesson->id);
     }
 
+    public function getOverallCourseProgress(User $user, Course $course): float
+    {
+        return $this->finalGradeService->calculateFinalGrade($user, $course);
+    }
+
+    /**
+     * Backwards-compatible wrapper used by some components.
+     */
     public function getCourseCompletionPercentage(User $user, Course $course): float
     {
-        $totalLessons = $course->lessons()->count();
-        if ($totalLessons === 0) {
-            return 0.0;
-        }
-
-        $completedLessons = $user->completedLessons()
-            ->where('lessons.course_id', $course->id)
-            ->count();
-            
-        return round(($completedLessons / $totalLessons) * 100, 2);
+        return $this->getOverallCourseProgress($user, $course);
     }
 }

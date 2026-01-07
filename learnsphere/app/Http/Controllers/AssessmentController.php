@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Assessment;
 use App\Models\Lesson;
 use App\Models\Question;
 use App\Models\QuestionResponse;
@@ -54,6 +55,54 @@ class AssessmentController extends Controller
             'message' => 'Assessment created successfully',
             'quiz' => $quiz,
         ]);
+    }
+
+    public function update(Request $request, Assessment $assessment)
+    {
+        $this->authorize('update', $assessment->assessable->course);
+
+        $validated = $request->validate([
+            'title' => 'sometimes|string|max:255',
+            'description' => 'nullable|string',
+            'type' => 'nullable|string|in:quiz,exam',
+            'time_limit' => 'nullable|integer|min:0',
+            'max_attempts' => 'nullable|integer|min:1',
+            'randomize' => 'nullable|boolean',
+            'questions_per_attempt' => 'nullable|integer|min:1',
+            'passing_score' => 'nullable|numeric|min:0|max:100',
+            'weight' => 'nullable|numeric|min:0',
+            'available_from' => 'nullable|date',
+            'available_until' => 'nullable|date|after:available_from',
+            'is_published' => 'nullable|boolean',
+            'show_answers_after_submit' => 'nullable|boolean',
+        ]);
+
+        $assessment->update($validated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Assessment updated successfully',
+            'quiz' => $assessment->fresh(),
+        ]);
+    }
+
+    public function getQuestions(Quiz $quiz)
+    {
+        $this->authorize('update', $quiz->lesson->course);
+        return response()->json($quiz->questions);
+    }
+
+    public function syncQuestions(Request $request, Quiz $quiz)
+    {
+        $this->authorize('update', $quiz->lesson->course);
+
+        $validated = $request->validate([
+            'questions' => 'required|array',
+        ]);
+
+        $this->assessmentService->syncQuestions($quiz, $validated['questions']);
+
+        return response()->json(['success' => true]);
     }
 
     /**

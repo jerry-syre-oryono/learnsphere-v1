@@ -42,6 +42,13 @@
             </div>
 
             <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Weight (%)</label>
+                <input type="number" x-model.number="quiz.weight" min="0" max="100"
+                    class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700">
+                <p class="text-xs text-gray-500 mt-1">e.g., 25 for 25% of final grade.</p>
+            </div>
+
+            <div>
                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Questions per
                     Attempt</label>
                 <input type="number" x-model.number="quiz.questions_per_attempt" min="1"
@@ -200,6 +207,7 @@
     function quizBuilder() {
         return {
             quiz: {
+                id: null,
                 title: '',
                 type: 'quiz',
                 time_limit: 0,
@@ -207,11 +215,38 @@
                 randomize: false,
                 questions_per_attempt: null,
                 passing_score: 60,
+                weight: 0,
                 show_answers_after_submit: false
             },
             questions: [],
             saving: false,
             lessonId: null,
+
+            async initBuilder(lessonId, assessment) {
+                this.lessonId = lessonId;
+                if (assessment) {
+                    this.quiz = { ...this.quiz, ...assessment };
+                    // We need an endpoint to fetch questions for a quiz
+                    const response = await fetch(`/api/quizzes/${assessment.id}/questions`);
+                    if (response.ok) {
+                        this.questions = await response.json();
+                    }
+                } else {
+                    this.quiz = {
+                        id: null,
+                        title: '',
+                        type: 'quiz',
+                        time_limit: 0,
+                        max_attempts: 1,
+                        randomize: false,
+                        questions_per_attempt: null,
+                        passing_score: 60,
+                        weight: 0,
+                        show_answers_after_submit: false
+                    };
+                    this.questions = [];
+                }
+            },
 
             addQuestion() {
                 this.questions.push({
@@ -268,9 +303,16 @@
 
                 this.saving = true;
                 try {
-                    // Create the quiz
-                    const quizResponse = await fetch(`/api/lessons/${this.lessonId}/assessments`, {
-                        method: 'POST',
+                    let url = `/api/lessons/${this.lessonId}/assessments`;
+                    let method = 'POST';
+
+                    if (this.quiz.id) {
+                        url = `/api/assessments/${this.quiz.id}`;
+                        method = 'PUT';
+                    }
+                    
+                    const quizResponse = await fetch(url, {
+                        method: method,
                         headers: {
                             'Content-Type': 'application/json',
                             'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
@@ -280,20 +322,21 @@
 
                     const quizData = await quizResponse.json();
                     if (!quizData.success) {
-                        throw new Error(quizData.message || 'Failed to create assessment');
+                        throw new Error(quizData.message || 'Failed to save assessment');
                     }
 
-                    // Add questions
-                    for (const question of this.questions) {
-                        await fetch(`/api/quizzes/${quizData.quiz.id}/questions`, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                            },
-                            body: JSON.stringify(question)
-                        });
-                    }
+                    // This is a simplification. In a real app, you'd handle question updates/creations/deletions more robustly.
+                    // For now, let's just re-add all questions.
+                    const quizId = quizData.quiz.id;
+                    await fetch(`/api/quizzes/${quizId}/questions/sync`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify({ questions: this.questions })
+                    });
+
 
                     this.$dispatch('assessment-saved', quizData.quiz);
                 } catch (error) {

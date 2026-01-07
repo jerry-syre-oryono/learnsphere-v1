@@ -67,6 +67,7 @@ class CourseCreationService
                     'description' => $assignmentData['description'] ?? null,
                     'due_date' => $assignmentData['due_date'] ?? null,
                     'max_score' => $assignmentData['max_score'] ?? 100,
+                    'weight' => $assignmentData['weight'] ?? 0,
                 ]);
             }
         }

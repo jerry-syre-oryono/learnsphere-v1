@@ -6,6 +6,9 @@ use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class RolesAndPermissionsSeeder extends Seeder
 {
@@ -27,5 +30,24 @@ class RolesAndPermissionsSeeder extends Seeder
         $instructorRole->givePermissionTo('manage courses');
 
         $adminRole = Role::firstOrCreate(['name' => 'admin']);
+
+        // create or update a superuser and assign admin role
+        if (app()->environment('production')) {
+            $this->command->warn('Skipping superuser creation in production environment.');
+        } else {
+            $password = Str::random(12);
+            $user = User::updateOrCreate(
+                ['email' => 'admin@learnsphere.test'],
+                [
+                    'name' => 'Super Admin',
+                    'password' => Hash::make($password),
+                    'is_approved' => true,
+                ]
+            );
+
+            $user->assignRole($adminRole);
+
+            $this->command->info("Superuser created/updated: email: admin@learnsphere.test | password: {$password}");
+        }
     }
 }

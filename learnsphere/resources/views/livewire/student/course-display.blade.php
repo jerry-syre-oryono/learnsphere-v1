@@ -25,6 +25,17 @@
         </div>
     </div>
 
+    @if ($this->isEnrolled)
+        <div class="mb-8">
+            <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-2">Your Progress</h3>
+            <div class="w-full bg-gray-200 rounded-full dark:bg-gray-700">
+                <div class="bg-blue-600 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full" style="width: {{ $progress }}%">
+                    {{ $progress }}%
+                </div>
+            </div>
+        </div>
+    @endif
+
     {{-- Student Management (Instructor/Admin Only) --}}
     @if(Auth::user()->id === $course->instructor_id || Auth::user()->hasRole('admin'))
         <div class="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-xl p-6 mb-8">
@@ -41,8 +52,8 @@
                                 <p class="text-[10px] text-gray-500">{{ $student->email }}</p>
                             </div>
                         </div>
-                        <button 
-                            wire:click="removeStudent({{ $student->id }})" 
+                        <button
+                            wire:click="removeStudent({{ $student->id }})"
                             wire:confirm="Are you sure you want to remove this student? They will lose all progress."
                             class="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -125,6 +136,17 @@
                                         @endif
                                     </div>
                                 </div>
+                                @if($this->isEnrolled && auth()->user()->hasRole('student'))
+                                    <div class="mt-2 px-3">
+                                        <form method="POST" action="{{ route('assignment.submit', $assignment) }}" enctype="multipart/form-data">
+                                            @csrf
+                                            <div class="flex items-center space-x-2">
+                                                <input type="file" name="attachment" required class="text-xs" />
+                                                <button type="submit" class="px-3 py-1 bg-blue-600 text-white text-xs rounded">Upload Answer</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                @endif
                             @endforeach
                         </div>
                     </div>

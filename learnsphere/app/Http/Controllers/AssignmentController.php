@@ -7,6 +7,7 @@ use App\Models\Course;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
+use App\Models\Submission;
 
 class AssignmentController extends Controller
 {
@@ -52,5 +53,38 @@ class AssignmentController extends Controller
             'Content-Type' => $mimeType,
             'Content-Disposition' => $disposition . '; filename="' . $filename . '"',
         ]);
+    }
+
+    public function submit(Request $request, Assignment $assignment)
+    {
+        $user = $request->user();
+        $course = $assignment->module->course;
+
+        $isEnrolled = $user->enrolledCourses()->where('course_id', $course->id)->exists();
+        if (! $isEnrolled) {
+            abort(403, 'Only enrolled students can submit assignments.');
+        }
+
+        $data = $request->validate([
+            'attachment' => 'required|file|mimes:pdf,doc,docx,txt,md,odt,zip,rar,png,jpg,jpeg,gif,xlsx,xls,pptx,ppt,mp4,mov,avi|max:51200', // up to 50MB
+        ]);
+
+        $file = $data['attachment'];
+        $disk = 'public';
+        $path = $file->storeAs('submissions/assignments/' . $assignment->id, 'user_' . $user->id . '_' . time() . '.' . $file->getClientOriginalExtension(), $disk);
+
+        $submission = Submission::updateOrCreate([
+            'user_id' => $user->id,
+            'submittable_type' => Assignment::class,
+            'submittable_id' => $assignment->id,
+        ], [
+            'attachment_path' => $path,
+            'attachment_name' => $file->getClientOriginalName(),
+            'answers' => [],
+            'status' => Submission::STATUS_PENDING_REVIEW,
+            'max_score' => $assignment->max_score,
+        ]);
+
+        return redirect()->back()->with('status', 'Assignment submitted successfully.');
     }
 }

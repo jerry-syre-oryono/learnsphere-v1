@@ -52,6 +52,16 @@ class AssessmentService
         ]);
     }
 
+    public function syncQuestions(Quiz $quiz, array $questions): void
+    {
+        DB::transaction(function () use ($quiz, $questions) {
+            $quiz->questions()->delete();
+            foreach ($questions as $questionData) {
+                $this->addQuestion($quiz, $questionData);
+            }
+        });
+    }
+
     /**
      * Start a submission attempt for a user.
      */
