@@ -4,9 +4,11 @@ use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 use App\Http\Controllers\GradebookController;
 use App\Http\Controllers\MediaController;
+use App\Http\Controllers\UserManagementController;
 use App\Livewire\Student\Dashboard as StudentDashboard; // Alias for clarity
 use App\Livewire\Student\CourseDisplay;
 use App\Livewire\Student\LessonView;
+use App\Livewire\Student\Profile;
 use App\Livewire\Admin\Dashboard as AdminDashboard; // Alias for clarity
 use App\Livewire\Quiz\TakeQuiz;
 use App\Livewire\Quiz\QuizResult;
@@ -14,9 +16,13 @@ use App\Livewire\Quiz\QuizResult;
 
 Route::get('/', fn() => view('welcome'))->name('home');
 
-Route::get('dashboard', StudentDashboard::class)
+    Route::get('dashboard', StudentDashboard::class)
     ->middleware(['auth', 'verified', 'approved'])
     ->name('dashboard');
+
+    Route::get('profile', Profile::class)
+    ->middleware(['auth', 'verified', 'approved', 'role:student'])
+    ->name('student.profile');
 
 // Authenticated user routes
 Route::middleware(['auth', 'approved'])->group(function () {
@@ -49,6 +55,9 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::put('admin/courses/{course}', [App\Http\Controllers\Admin\CourseController::class, 'update'])->name('admin.courses.update')->middleware('role:admin|instructor');
 
     Volt::route('admin/users', 'admin.usermanagement')->name('admin.users')->middleware('role:admin');
+    Route::get('admin/user-management', [UserManagementController::class, 'index'])->name('admin.user-management.index')->middleware('role:admin|instructor');
+    Route::get('admin/user-management/{user}', [UserManagementController::class, 'show'])->name('admin.user-management.show')->middleware('role:admin|instructor');
+    Route::delete('admin/user-management/{user}', [UserManagementController::class, 'destroy'])->name('admin.user-management.destroy')->middleware('role:admin');
     Route::get('admin/gradebook', [GradebookController::class, 'index'])->name('admin.gradebook')->middleware('role:admin');
 
     // Other admin routes like managing courses, quizzes etc. would go here

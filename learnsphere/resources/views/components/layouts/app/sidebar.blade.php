@@ -35,9 +35,21 @@
                             <flux:badge size="sm" color="red" class="ml-auto">{{ $pendingCount }}</flux:badge>
                         @endif
                     </flux:navlist.item>
+                    <flux:navlist.item icon="users" :href="route('admin.user-management.index')"
+                        :current="request()->routeIs('admin.user-management.*')" wire:navigate>
+                        {{ __('User Management') }}
+                    </flux:navlist.item>
+                @endif
+                @if(auth()->user()->hasRole('admin'))
                     <flux:navlist.item icon="academic-cap" :href="route('admin.gradebook')"
                         :current="request()->routeIs('admin.gradebook')" wire:navigate>
                         {{ __('Gradebook') }}
+                    </flux:navlist.item>
+                @endif
+                @if(auth()->user()->hasRole('student'))
+                    <flux:navlist.item icon="user" :href="route('student.profile')"
+                        :current="request()->routeIs('student.profile')" wire:navigate>
+                        {{ __('Profile') }}
                     </flux:navlist.item>
                 @endif
             </flux:navlist.group>

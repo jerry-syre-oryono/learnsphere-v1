@@ -4,6 +4,7 @@ namespace App\Livewire\Student;
 
 use App\Models\Course;
 use App\Services\ProgressService;
+use App\Services\StudentNumberService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -15,10 +16,12 @@ class CourseDisplay extends Component
     public float $progress = 0;
 
     protected ProgressService $progressService;
+    protected StudentNumberService $studentNumberService;
 
-    public function boot(ProgressService $progressService): void
+    public function boot(ProgressService $progressService, StudentNumberService $studentNumberService): void
     {
         $this->progressService = $progressService;
+        $this->studentNumberService = $studentNumberService;
     }
 
     public function mount(Course $course): void
@@ -53,8 +56,22 @@ class CourseDisplay extends Component
             return;
         }
 
+        // Perform the enrollment
         Auth::user()->enrolledCourses()->attach($this->course->id);
         $this->isEnrolled = true;
+
+        // Generate student number AFTER successful enrollment
+        // This ensures student numbers are only created when enrollment actually succeeds
+        try {
+            $this->studentNumberService->generateStudentNumber(Auth::user(), $this->course);
+        } catch (\Exception $e) {
+            // Log the error but don't fail the enrollment process
+            // Student number generation failure shouldn't prevent course access
+            \Log::error('Failed to generate student number for user ' . Auth::user()->id . ' in course ' . $this->course->id, [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
 
         $this->dispatch('course-enrolled');
     }

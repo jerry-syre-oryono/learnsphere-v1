@@ -80,4 +80,48 @@ class Course extends Model
     {
         return $query->where('published', true);
     }
+
+    /**
+     * Get the course code derived from the course title.
+     *
+     * This method generates a course code by taking the first letter of each
+     * significant word in the title (excluding common words like "in", "of", "the", etc.).
+     *
+     * Examples:
+     * - "Diploma in VFX" → "DVFX"
+     * - "Certificate in Web Development" → "CWD"
+     * - "Bachelor of Computer Science" → "BCS"
+     *
+     * @return string The course code in uppercase
+     */
+    public function getCourseCode(): string
+    {
+        // Common words to exclude from course code generation
+        $excludeWords = ['in', 'of', 'the', 'and', 'for', 'with', 'on', 'at', 'to', 'a', 'an'];
+
+        $words = explode(' ', $this->title);
+
+        $codeParts = [];
+        foreach ($words as $word) {
+            $word = trim($word);
+            if (!empty($word) && !in_array(strtolower($word), $excludeWords)) {
+                // If word is all uppercase (likely an acronym), use up to 3 characters
+                if ($word === strtoupper($word) && strlen($word) <= 3) {
+                    $codeParts[] = strtoupper($word);
+                } else {
+                    // Otherwise use first letter
+                    $codeParts[] = strtoupper(substr($word, 0, 1));
+                }
+            }
+        }
+
+        // If no significant words found, use first 4 characters of title
+        if (empty($codeParts)) {
+            return strtoupper(substr(preg_replace('/[^A-Za-z]/', '', $this->title), 0, 4));
+        }
+
+        // Join and limit to 4 characters maximum
+        $code = implode('', $codeParts);
+        return substr($code, 0, 4);
+    }
 }

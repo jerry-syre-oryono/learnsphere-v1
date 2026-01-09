@@ -30,6 +30,7 @@
                                             <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                                                 <thead class="bg-white dark:bg-gray-700">
                                                     <tr>
+                                                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Student Number</th>
                                                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Student</th>
                                                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Submitted</th>
                                                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Attachment</th>
@@ -42,8 +43,10 @@
                                                     @forelse($course->students as $student)
                                                         @php
                                                             $submission = $student->submissions->where('submittable_type', get_class($assignment))->where('submittable_id', $assignment->id)->first();
+                                                            $enrollment = $course->enrollments->where('user_id', $student->id)->first();
                                                         @endphp
                                                         <tr>
+                                                            <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{{ $enrollment?->student_number ?? 'N/A' }}</td>
                                                             <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{{ $student->name }}</td>
                                                             <td class="px-4 py-3 text-sm text-gray-500">{{ $submission ? 'Yes' : 'No' }}</td>
                                                             <td class="px-4 py-3 text-sm text-gray-500">
@@ -72,7 +75,7 @@
                                                         </tr>
                                                     @empty
                                                         <tr>
-                                                            <td colspan="6" class="px-4 py-3 text-sm text-gray-500 text-center">No students enrolled.</td>
+                                                            <td colspan="7" class="px-4 py-3 text-sm text-gray-500 text-center">No students enrolled.</td>
                                                         </tr>
                                                     @endforelse
                                                 </tbody>
