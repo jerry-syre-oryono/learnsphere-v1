@@ -58,17 +58,25 @@ class SubmissionController extends Controller
             abort(403);
         }
 
+        // Calculate max score before validation
+        $max = $submission->max_score ?: ($submittable->max_score ?? null);
+        if ($max === null) {
+             // Handle case where max score is not defined, perhaps default to a high value or error
+             // For now, let's assume it should always be defined for grading
+             return response()->json(['message' => 'Max score not defined for this submittable.'], 400);
+        }
+
         $data = $request->validate([
-            'score' => 'required|numeric|min:0',
+            'score' => 'required|numeric|min:0|max:' . $max, // Added max validation
             'feedback' => 'nullable|string',
         ]);
 
         $submission->score = $data['score'];
         $submission->feedback = $data['feedback'] ?? null;
 
-        $max = $submission->max_score ?: ($submittable->max_score ?? null);
-        if ($max) {
+        if ($max) { // This check is already done above, but keep it for robustness
             $submission->percentage = ($submission->score / $max) * 100;
+            $submission->percentage = min(100, $submission->percentage); // Cap percentage at 100
             $submission->max_score = $max;
         }
 

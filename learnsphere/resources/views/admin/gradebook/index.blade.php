@@ -44,8 +44,9 @@
                                                         @php
                                                             $submission = $student->submissions->where('submittable_type', get_class($assignment))->where('submittable_id', $assignment->id)->first();
                                                             $enrollment = $course->enrollments->where('user_id', $student->id)->first();
+                                                            $submissionKey = 'submission-' . ($submission?->id ?? 'none');
                                                         @endphp
-                                                        <tr>
+                                                        <tr data-submission-key="{{ $submissionKey }}">
                                                             <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{{ $enrollment?->student_number ?? 'N/A' }}</td>
                                                             <td class="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{{ $student->name }}</td>
                                                             <td class="px-4 py-3 text-sm text-gray-500">{{ $submission ? 'Yes' : 'No' }}</td>
@@ -57,8 +58,8 @@
                                                                     <span class="text-xs text-gray-400">-</span>
                                                                 @endif
                                                             </td>
-                                                            <td id="score-{{ $submission?->id }}" class="px-4 py-3 text-sm text-gray-500">{{ $submission && $submission->score !== null ? $submission->score : '-' }}</td>
-                                                            <td id="percentage-{{ $submission?->id }}" class="px-4 py-3 text-sm text-gray-500">{{ $submission && $submission->percentage !== null ? number_format($submission->percentage, 2) . '%' : '-' }}</td>
+                                                            <td class="score-cell px-4 py-3 text-sm text-gray-500">{{ $submission && $submission->score !== null ? $submission->score : '-' }}</td>
+                                                            <td class="percentage-cell px-4 py-3 text-sm text-gray-500">{{ $submission && $submission->percentage !== null ? number_format($submission->percentage, 2) . '%' : '-' }}</td>
                                                             <td class="px-4 py-3 text-sm text-gray-500">
                                                                 @if($submission)
                                                                     <form method="POST" action="{{ route('submission.grade', $submission) }}" class="submission-grade-form flex gap-2 items-center" data-submission-id="{{ $submission->id }}" style="flex-wrap:wrap">
@@ -112,10 +113,22 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!res.ok) throw res;
                 var data = await res.json();
                 var sub = data.submission;
-                var scoreEl = document.getElementById('score-' + sub.id);
-                var percEl = document.getElementById('percentage-' + sub.id);
+
+                // Find the correct row using the form's data attribute
+                var submissionId = form.getAttribute('data-submission-id');
+                var parentRow = form.closest('tr');
+                if (!parentRow) {
+                    console.error('Could not find parent row for form.', form);
+                    return;
+                }
+
+                // Update cells using class selectors (more reliable than ID selectors)
+                var scoreEl = parentRow.querySelector('.score-cell');
+                var percEl = parentRow.querySelector('.percentage-cell');
+
                 if (scoreEl) scoreEl.textContent = (sub.score !== null ? sub.score : '-');
                 if (percEl) percEl.textContent = (sub.percentage !== null ? parseFloat(sub.percentage).toFixed(2) + '%' : '-');
+
                 var msg = form.querySelector('.submission-msg');
                 if (msg) {
                     msg.textContent = data.message || 'Saved';
