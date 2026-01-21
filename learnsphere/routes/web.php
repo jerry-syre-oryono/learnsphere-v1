@@ -24,6 +24,10 @@ Route::get('/', fn() => view('welcome'))->name('home');
     ->middleware(['auth', 'verified', 'approved', 'role:student'])
     ->name('student.profile');
 
+    Volt::route('results', 'student.results')
+    ->middleware(['auth', 'verified', 'approved', 'role:student'])
+    ->name('student.results');
+
 // Authenticated user routes
 Route::middleware(['auth', 'approved'])->group(function () {
     // Settings Routes
@@ -58,13 +62,22 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::get('admin/user-management', [UserManagementController::class, 'index'])->name('admin.user-management.index')->middleware('role:admin|instructor');
     Route::get('admin/user-management/{user}', [UserManagementController::class, 'show'])->name('admin.user-management.show')->middleware('role:admin|instructor');
     Route::delete('admin/user-management/{user}', [UserManagementController::class, 'destroy'])->name('admin.user-management.destroy')->middleware('role:admin');
-    Route::get('admin/gradebook', [GradebookController::class, 'index'])->name('admin.gradebook')->middleware('role:admin');
+    Route::get('admin/gradebook', [GradebookController::class, 'index'])->name('admin.gradebook')->middleware('role:admin|instructor');
+    Route::get('/admin/courses/{course}/grade-report', function (App\Models\Course $course) {
+        return view('admin.grade-report', ['course' => $course]);
+    })->name('admin.grade-report')->middleware('role:admin|instructor');
+
+    // New Grade Reports Landing Page
+    Route::get('/admin/grade-reports', App\Livewire\Admin\CourseListForGrades::class)
+        ->name('admin.grade-reports-landing')
+        ->middleware('role:admin|instructor');
 
     // Other admin routes like managing courses, quizzes etc. would go here
 
     // Instructor/Admin specific routes for Gradebook (from previous steps)
-    Route::get('courses/{course}/gradebook', [GradebookController::class, 'index'])->name('gradebook.index');
-    Route::get('courses/{course}/gradebook/export', [GradebookController::class, 'export'])->name('gradebook.export');
+    Route::get('courses/{course}/gradebook', [GradebookController::class, 'index'])->name('gradebook.index')->middleware('role:admin|instructor');
+    Route::get('courses/{course}/gradebook/export', [GradebookController::class, 'export'])->name('gradebook.export')->middleware('role:admin|instructor');
+    Route::post('admin/courses/{course}/process-grades', [GradebookController::class, 'processGrades'])->name('admin.courses.process-grades')->middleware('role:admin|instructor');
 
     // Module API Routes
     Route::prefix('api')->middleware('role:admin|instructor')->group(function () {
@@ -112,6 +125,21 @@ Route::middleware(['auth', 'approved'])->group(function () {
     Route::post('assignments/{assignment}/submit', [App\Http\Controllers\AssignmentController::class, 'submit'])->name('assignment.submit');
     Route::get('submissions/{submission}/download', [App\Http\Controllers\SubmissionController::class, 'download'])->name('submission.download');
     Route::post('submissions/{submission}/grade', [App\Http\Controllers\SubmissionController::class, 'grade'])->name('submission.grade');
+
+    // Grading Routes
+    Route::get('student/grades', fn() => view('grades.student-report'))->name('student.grades');
+    Route::get('api/student/grade-report', [App\Http\Controllers\GradeReportController::class, 'getStudentGradeReport'])->name('api.grades.report');
+    Route::get('api/students/{student}/cgpa', [App\Http\Controllers\GradeReportController::class, 'getStudentCGPA'])->name('api.students.cgpa');
+    Route::get('api/enrollments/{enrollment}/grades', [App\Http\Controllers\GradeReportController::class, 'getEnrollmentGrades'])->name('api.enrollments.grades');
+    Route::get('api/academic-policies', [App\Http\Controllers\GradeReportController::class, 'getAcademicPolicies'])->name('api.academic-policies');
+
+    // Admin Grade Processing Routes
+    Route::middleware(['role:instructor|admin'])->group(function () {
+        Route::post('api/admin/grades/process', [App\Http\Controllers\Admin\GradeProcessingController::class, 'processGrade'])->name('api.admin.grades.process');
+        Route::post('api/admin/grades/bulk-process', [App\Http\Controllers\Admin\GradeProcessingController::class, 'bulkProcessGrades'])->name('api.admin.grades.bulk-process');
+        Route::get('api/admin/courses/{course}/results', [App\Http\Controllers\Admin\GradeProcessingController::class, 'getCourseResults'])->name('api.admin.courses.results');
+        Route::put('api/admin/results/{result}', [App\Http\Controllers\Admin\GradeProcessingController::class, 'updateGrade'])->name('api.admin.results.update');
+    });
 });
 
 require __DIR__ . '/auth.php';
