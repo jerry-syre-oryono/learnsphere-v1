@@ -1,4 +1,3 @@
-@props(['lessonId' => null])
 {{-- Quiz/Exam Builder Component --}}
 <div x-data="quizBuilder()" x-ref="quizBuilder" class="space-y-6">
     {{-- Quiz Settings --}}
@@ -222,6 +221,11 @@
             saving: false,
             lessonId: null,
 
+            init() {
+                // lessonId will be set by initBuilder when modal opens
+                this.lessonId = null;
+            },
+
             async initBuilder(lessonId, assessment) {
                 this.lessonId = lessonId;
                 if (assessment) {
@@ -296,8 +300,9 @@
             },
 
             async save() {
+                // The lessonId should be set by initBuilder when the modal opens
                 if (!this.lessonId) {
-                    alert('Lesson ID is required');
+                    alert('Lesson ID is required. Please try opening the quiz builder again.');
                     return;
                 }
 
@@ -310,7 +315,7 @@
                         url = `/api/assessments/${this.quiz.id}`;
                         method = 'PUT';
                     }
-                    
+
                     const quizResponse = await fetch(url, {
                         method: method,
                         headers: {
