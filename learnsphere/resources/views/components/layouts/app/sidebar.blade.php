@@ -40,16 +40,24 @@
                         {{ __('User Management') }}
                     </flux:navlist.item>
                 @endif
-                @if(auth()->user()->hasRole('admin'))
+                @if(auth()->user()->hasRole('admin') || auth()->user()->hasRole('instructor'))
                     <flux:navlist.item icon="academic-cap" :href="route('admin.gradebook')"
                         :current="request()->routeIs('admin.gradebook')" wire:navigate>
-                        {{ __('Gradebook') }}
+                        {{ __('Assignment Grading') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item icon="academic-cap" :href="route('admin.grade-reports-landing')"
+                        :current="request()->routeIs('admin.grade-reports-landing') || request()->routeIs('admin.grade-report')" wire:navigate>
+                        {{ __('Grade Reports') }}
                     </flux:navlist.item>
                 @endif
                 @if(auth()->user()->hasRole('student'))
                     <flux:navlist.item icon="user" :href="route('student.profile')"
                         :current="request()->routeIs('student.profile')" wire:navigate>
                         {{ __('Profile') }}
+                    </flux:navlist.item>
+                    <flux:navlist.item icon="academic-cap" :href="route('student.results')"
+                        :current="request()->routeIs('student.results')" wire:navigate>
+                        {{ __('Results') }}
                     </flux:navlist.item>
                 @endif
             </flux:navlist.group>
