@@ -9,7 +9,7 @@ class Enrollment extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'course_id', 'student_number', 'enrollment_year'];
+    protected $fillable = ['user_id', 'course_id', 'student_number', 'enrollment_year', 'program_level_id'];
 
     public function user()
     {
@@ -19,5 +19,15 @@ class Enrollment extends Model
     public function course()
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function programLevel()
+    {
+        return $this->belongsTo(ProgramLevel::class);
+    }
+
+    public function courseResults()
+    {
+        return $this->hasMany(StudentCourseResult::class);
     }
 }
