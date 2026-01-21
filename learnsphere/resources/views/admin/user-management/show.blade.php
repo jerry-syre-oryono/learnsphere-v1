@@ -34,83 +34,71 @@
                         <div class="ml-auto">
                             <div class="text-right">
                                 <div class="text-2xl font-bold text-gray-900 dark:text-white">
-                                    @if($overallGPA)
-                                        {{ number_format($overallGPA, 1) }}%
+                                    @if(isset($gradeReport['cgpa']))
+                                        {{ number_format($gradeReport['cgpa'], 2) }}
                                     @else
                                         N/A
                                     @endif
                                 </div>
-                                <div class="text-sm text-gray-500">Overall GPA</div>
+                                <div class="text-sm text-gray-500">Overall CGPA</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div class="px-6 py-4">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Course Enrollments</h2>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Academic Performance</h2>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                            <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($gradeReport['cgpa'], 2) }}</div>
+                            <div class="text-sm text-gray-600 dark:text-gray-300">CGPA</div>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                            <div class="text-xl font-bold text-gray-900 dark:text-white">
+                                {{ $gradeReport['academic_standing']['status'] ?? 'N/A' }}
+                            </div>
+                            <div class="text-sm text-gray-600 dark:text-gray-300">Academic Standing</div>
+                        </div>
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                            <div class="text-xl font-bold text-gray-900 dark:text-white">
+                                {{ $gradeReport['classification']['classification'] ?? ($gradeReport['classification']['class'] ?? 'N/A') }}
+                            </div>
+                            <div class="text-sm text-gray-600 dark:text-gray-300">Classification</div>
+                        </div>
+                    </div>
+
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Course Progress & Grades</h3>
 
                     <div class="space-y-4">
-                        @forelse($courseProgress as $courseData)
+                        @forelse($courseProgress as $data)
                             <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                                <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center justify-between">
                                     <div>
-                                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                                            {{ $courseData['course']->title }}
-                                        </h3>
+                                        <h4 class="text-lg font-medium text-gray-900 dark:text-white">
+                                            {{ $data['course']->title }}
+                                        </h4>
                                         <p class="text-sm text-gray-500">
-                                            Student Number: {{ $courseData['student_number'] }}
-                                            @if($courseData['enrollment_year'])
-                                                • Enrolled: {{ $courseData['enrollment_year'] }}
-                                            @endif
+                                            Overall Progress: {{ round($data['progress']) }}%
                                         </p>
                                     </div>
                                     <div class="text-right">
-                                        <div class="text-lg font-semibold text-gray-900 dark:text-white">
-                                            @if($courseData['grade'])
-                                                {{ number_format($courseData['grade'], 1) }}%
-                                            @else
-                                                No grade yet
-                                            @endif
-                                        </div>
-                                        <div class="text-sm text-gray-500">Course Grade</div>
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 mb-1">
-                                        <span>Progress</span>
-                                        <span>{{ number_format($courseData['progress'], 1) }}%</span>
-                                    </div>
-                                    <div class="w-full bg-gray-200 rounded-full h-2">
-                                        <div class="bg-indigo-600 h-2 rounded-full" style="width: {{ $courseData['progress'] }}%"></div>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                                    <div>
-                                        <span class="text-gray-500">Lessons:</span>
-                                        <span class="ml-2 font-medium">
-                                            {{ $courseData['course']->lessons->count() }}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <span class="text-gray-500">Assignments:</span>
-                                        <span class="ml-2 font-medium">
-                                            {{ $courseData['course']->assignments->count() }}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <span class="text-gray-500">Completed:</span>
-                                        <span class="ml-2 font-medium">
-                                            {{ $user->completedLessons()->where('course_id', $courseData['course']->id)->count() }}
-                                            / {{ $courseData['course']->lessons->count() }}
+                                        {{-- Note: This 'grade' here is just the progress percentage.
+                                            For detailed course grades (letter/points), a separate call might be needed
+                                            or fetched with courseProgress data. --}}
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium
+                                            @if($data['progress'] >= 80) bg-green-100 text-green-800
+                                            @elseif($data['progress'] >= 60) bg-blue-100 text-blue-800
+                                            @elseif($data['progress'] >= 40) bg-yellow-100 text-yellow-800
+                                            @else bg-red-100 text-red-800 @endif">
+                                            {{ number_format($data['progress'], 1) }}%
                                         </span>
                                     </div>
                                 </div>
                             </div>
                         @empty
                             <div class="text-center py-8 text-gray-500">
-                                This student is not enrolled in any courses.
+                                <p>No course progress available for this student yet.</p>
                             </div>
                         @endforelse
                     </div>

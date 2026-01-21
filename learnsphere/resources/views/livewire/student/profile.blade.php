@@ -24,13 +24,13 @@
                             <div class="ml-auto">
                                 <div class="text-right">
                                     <div class="text-2xl font-bold text-gray-900 dark:text-white">
-                                        @if($overallGPA)
-                                            {{ number_format($overallGPA, 1) }}%
+                                        @if(isset($gradeReport['cgpa']))
+                                            {{ number_format($gradeReport['cgpa'], 2) }}
                                         @else
                                             N/A
                                         @endif
                                     </div>
-                                    <div class="text-sm text-gray-500">Overall GPA</div>
+                                    <div class="text-sm text-gray-500">Overall CGPA</div>
                                 </div>
                             </div>
                         </div>
@@ -41,138 +41,50 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                                <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ $user->enrollments->count() }}</div>
-                                <div class="text-sm text-gray-600 dark:text-gray-300">Courses Enrolled</div>
+                                <div class="text-2xl font-bold text-gray-900 dark:text-white">{{ number_format($gradeReport['cgpa'], 2) }}</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-300">CGPA</div>
                             </div>
                             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                                <div class="text-2xl font-bold text-gray-900 dark:text-white">
-                                    @if($overallGPA)
-                                        {{ number_format($overallGPA, 1) }}%
-                                    @else
-                                        N/A
-                                    @endif
+                                <div class="text-xl font-bold text-gray-900 dark:text-white">
+                                    {{ $gradeReport['academic_standing']['status'] ?? 'N/A' }}
                                 </div>
-                                <div class="text-sm text-gray-600 dark:text-gray-300">Overall GPA</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-300">Academic Standing</div>
                             </div>
                             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                                <div class="text-2xl font-bold text-gray-900 dark:text-white">
-                                    {{ $user->completedLessons->count() }}
+                                <div class="text-xl font-bold text-gray-900 dark:text-white">
+                                    {{ $gradeReport['classification']['classification'] ?? ($gradeReport['classification']['class'] ?? 'N/A') }}
                                 </div>
-                                <div class="text-sm text-gray-600 dark:text-gray-300">Lessons Completed</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-300">Classification</div>
                             </div>
                         </div>
 
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Course Details</h3>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">My Courses</h3>
 
                         <div class="space-y-4">
-                            @forelse($courseProgress as $courseData)
+                            @forelse($courseProgress as $progress)
                                 <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                                    <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center justify-between">
                                         <div>
                                             <h4 class="text-lg font-medium text-gray-900 dark:text-white">
-                                                {{ $courseData['course']->title }}
+                                                {{ $progress['course']->title }}
                                             </h4>
                                             <p class="text-sm text-gray-500">
-                                                Student Number: {{ $courseData['student_number'] }}
-                                                @if($courseData['enrollment_year'])
-                                                    • Enrolled: {{ $courseData['enrollment_year'] }}
-                                                @endif
+                                                Progress: {{ round($progress['progress']) }}%
                                             </p>
                                         </div>
                                         <div class="text-right">
                                             <div class="text-lg font-semibold text-gray-900 dark:text-white">
-                                                @if($courseData['grade'])
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium
-                                                        @if($courseData['grade'] >= 90) bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200
-                                                        @elseif($courseData['grade'] >= 80) bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200
-                                                        @elseif($courseData['grade'] >= 70) bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200
-                                                        @else bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 @endif">
-                                                        {{ number_format($courseData['grade'], 1) }}%
-                                                    </span>
-                                                @else
-                                                    <span class="text-gray-400">No grade yet</span>
-                                                @endif
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                                    {{ $progress['grade'] ?? 'N/A' }}
+                                                </span>
                                             </div>
-                                            <div class="text-sm text-gray-500">Course Grade</div>
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-300 mb-1">
-                                            <span>Progress</span>
-                                            <span>{{ number_format($courseData['progress'], 1) }}%</span>
-                                        </div>
-                                        <div class="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
-                                            <div class="bg-indigo-600 h-2 rounded-full" style="width: {{ $courseData['progress'] }}%"></div>
-                                        </div>
-                                    </div>
-
-                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
-                                        <div>
-                                            <span class="text-gray-500">Total Lessons:</span>
-                                            <span class="ml-2 font-medium text-gray-900 dark:text-white">
-                                                {{ $courseData['course']->lessons->count() }}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span class="text-gray-500">Assignments:</span>
-                                            <span class="ml-2 font-medium text-gray-900 dark:text-white">
-                                                {{ $courseData['course']->assignments->count() }}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span class="text-gray-500">Completed:</span>
-                                            <span class="ml-2 font-medium text-gray-900 dark:text-white">
-                                                {{ $user->completedLessons()->where('course_id', $courseData['course']->id)->count() }}
-                                                / {{ $courseData['course']->lessons->count() }}
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span class="text-gray-500">Instructor:</span>
-                                            <span class="ml-2 font-medium text-gray-900 dark:text-white">
-                                                {{ $courseData['course']->instructor->name }}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-                                        <h5 class="text-sm font-medium text-gray-900 dark:text-white mb-2">Recent Activity</h5>
-                                        <div class="text-xs text-gray-500">
-                                            @php
-                                                $recentSubmissions = $user->submissions()
-                                                    ->whereHas('submittable', function ($query) use ($courseData) {
-                                                        $query->whereHas('module', function ($q) use ($courseData) {
-                                                            $q->where('course_id', $courseData['course']->id);
-                                                        });
-                                                    })
-                                                    ->latest()
-                                                    ->take(3)
-                                                    ->get();
-                                            @endphp
-
-                                            @if($recentSubmissions->count() > 0)
-                                                @foreach($recentSubmissions as $submission)
-                                                    <div class="mb-1">
-                                                        Submitted {{ $submission->submittable->title }}
-                                                        @if($submission->percentage)
-                                                            - {{ number_format($submission->percentage, 1) }}%
-                                                        @endif
-                                                        <span class="text-gray-400">({{ $submission->created_at->diffForHumans() }})</span>
-                                                    </div>
-                                                @endforeach
-                                            @else
-                                                <div>No recent submissions</div>
-                                            @endif
+                                            <div class="text-sm text-gray-500">Grade Point: {{ number_format($progress['grade_point'], 2) }}</div>
                                         </div>
                                     </div>
                                 </div>
                             @empty
                                 <div class="text-center py-8 text-gray-500">
-                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                                    </svg>
-                                    <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No courses yet</h3>
-                                    <p class="mt-1 text-sm text-gray-500">You haven't enrolled in any courses yet.</p>
+                                    <p>You are not enrolled in any courses yet.</p>
                                 </div>
                             @endforelse
                         </div>
